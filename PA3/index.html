@@ -1,0 +1,384 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-sRIl4kxILFvY47J16cr9ZwB07vP4J8+LH7qKQnuqkuIAvNWLzeN8tE5YBujZqJLB"
+      crossorigin="anonymous"
+    />
+  </head>
+
+  <body class="p-4">
+    <div
+      class="modal fade"
+      id="exampleModalCenter"
+      tabindex="-1"
+      role="dialog"
+      aria-labelledby="exampleModalCenterTitle"
+      aria-hidden="true"
+    >
+      <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content border border-secondary">
+          <div class="modal-header border-bottom">
+            <h5 class="modal-title" id="exampleModalLongTitle">
+              Actualización de Producto
+            </h5>
+            <button
+              type="button"
+              class="btn-close"
+              data-bs-dismiss="modal"
+              aria-label="Close"
+            ></button>
+          </div>
+          <div class="modal-body">
+            <h6 id="idActualizar" class="text-center"></h6>
+            <br />
+            <form id="modalForm">
+              <input
+                type="text"
+                id="nomActualizar"
+                name="nombre"
+                class="form-control border"
+                placeholder="Escribe el nombre a actualizar"
+              />
+              <br />
+              <input
+                type="text"
+                id="contrasenaActualizar"
+                name="contrasena"
+                class="form-control border"
+                placeholder="Escribe la contraseña a actualizar"
+              />
+              <br />
+              <input
+                type="email"
+                id="correoActualizar"
+                name="correo"
+                class="form-control border"
+                placeholder="Escribe el correo a actualizar"
+              />
+            </form>
+          </div>
+          <div class="modal-footer border-top">
+            <button
+              type="button"
+              class="btn btn-secondary border"
+              data-bs-dismiss="modal"
+            >
+              Cerrar
+            </button>
+            <button
+              onclick="ActualizarDatos()"
+              type="button"
+              class="btn btn-primary border"
+            >
+              Actualizar
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="border rounded p-3 mb-4">
+      <h1>BASE DE DATOS</h1>
+
+      <div>
+        <input type="number" id="IdInput" value="" />
+        <button class="btn btn-primary" onclick="MostrarByID()">Buscar</button>
+      </div>
+
+      <form id="miFormulario" class="d-flex gap-2">
+        <input
+          type="text"
+          name="nombre"
+          class="form-control border"
+          placeholder="Nombre"
+          required
+        />
+        <input
+          type="password"
+          name="contrasena"
+          class="form-control border"
+          placeholder="contraseña"
+          required
+        />
+        <input
+          type="email"
+          name="correo"
+          class="form-control border"
+          placeholder="correo"
+          required
+        />
+        <button type="submit" class="btn btn-primary border">Crear</button>
+      </form>
+    </div>
+
+    <table id="miTabla" class="table table-bordered"></table>
+
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-FKyoEForCGlyvwx9Hj09JcYn3nv7wiPVlz7YYwJrWVcXK/BmnVDxM+D2scQbITxI"
+      crossorigin="anonymous"
+    ></script>
+
+    <script>
+      const IdInput = document.getElementById("IdInput");
+      const miTabla = document.getElementById("miTabla");
+
+      const idActualizar = document.getElementById("idActualizar");
+      const nomActualizar = document.getElementById("nomActualizar");
+      const contrasenaActualizar = document.getElementById(
+        "contrasenaActualizar",
+      );
+
+      const correoActualizar = document.getElementById("correoActualizar");
+
+      const miFormulario = document.getElementById("miFormulario");
+
+      const MyFetch = async (url) => {
+        try {
+          const respuesta = await fetch(url);
+          if (!respuesta.ok) {
+            alert("Error de Conexión");
+            return null;
+          }
+          return await respuesta.json();
+        } catch (e) {
+          console.log("Error:", e);
+          return null;
+        }
+      };
+
+      const MostrarDatos = async () => {
+        try {
+          const respuesta = await fetch("http://localhost:8000/api/user");
+          if (!respuesta.ok) {
+            alert("Error de Conexión");
+            return;
+          }
+
+          const datos = await respuesta.json();
+
+          miTabla.replaceChildren();
+          let miElementoDatbla = `
+            <thead class="table-dark border">
+                <tr>
+                    <th scope="col" class="text-center">ID</th>
+                    <th scope="col" class="text-center">Nombre</th>
+                    <th scope="col" class="text-center">Contraseña</th>
+                    <th scope="col" class="text-center">Correo</th>
+                    <th scope="col" class="text-center">Fecha</th>
+                    <th scope="col" class="text-center">Eliminar</th>
+                    <th scope="col" class="text-center">Actualizar</th>
+                </tr>
+            </thead>
+            <tbody>`;
+
+          datos.forEach((e) => {
+            miElementoDatbla += `
+                <tr>
+                    <th data-id="${e.id}" scope="row" class="text-center">${e.id}</th>
+                    <td>${e.nombre}</td>
+                    <td>${e.contrasena}</td>
+                    <td>${e.correo}</td>
+                    <td>${e.fecha}</td>
+                    <td class="text-center">
+                        <button class="btn btn-outline-danger btn-sm" onclick="EliminarDatos(this)">Eliminar</button>
+                    </td>
+                    <td class="text-center">
+                        <button
+                            onclick="ModalActualizarId(this)"
+                            type="button"
+                            class="btn btn-outline-primary btn-sm"
+                            data-bs-toggle="modal"
+                            data-bs-target="#exampleModalCenter">
+                            Actualizar
+                        </button>
+                    </td>
+                </tr>`;
+          });
+
+          miElementoDatbla += `</tbody>`;
+          miTabla.insertAdjacentHTML("beforeend", miElementoDatbla);
+        } catch (e) {
+          console.log("Error:", e);
+        }
+      };
+
+      MostrarDatos();
+
+      window.ModalActualizarId = function (button) {
+        const tr = button.closest("tr");
+        const id = tr.children[0].dataset.id;
+        idActualizar.textContent = `ID: ${id}`;
+        idActualizar.dataset.id = id;
+        nomActualizar.value = tr.children[1].textContent;
+        contrasenaActualizar.value = tr.children[2].textContent;
+        correoActualizar.value = tr.children[3].textContent;
+      };
+
+      window.ActualizarDatos = async function () {
+        const id = idActualizar.dataset.id;
+        if (!id) return;
+
+        const datosActualizados = {
+          nombre: nomActualizar.value,
+          contrasena: contrasenaActualizar.value,
+          correo: correoActualizar.value,
+        };
+
+        try {
+          const respuesta = await fetch(
+            `http://localhost:8000/api/user/${id}`,
+            {
+              method: "PUT",
+              headers: { "Content-type": "application/json" },
+              body: JSON.stringify(datosActualizados),
+            },
+          );
+
+          if (!respuesta.ok) {
+            alert("Error en la petición");
+            return;
+          }
+
+          const modalEl = document.getElementById("exampleModalCenter");
+          const modal =
+            bootstrap.Modal.getInstance(modalEl) ||
+            new bootstrap.Modal(modalEl);
+          modal.hide();
+
+          MostrarDatos();
+        } catch (e) {
+          console.log("Error:", e);
+        }
+      };
+
+      window.EliminarDatos = async function (e) {
+        try {
+          const id = e.closest("tr").children[0].dataset.id;
+          const respuesta = await fetch(
+            `http://localhost:8000/api/user/${id}`,
+            {
+              method: "DELETE",
+            },
+          );
+
+          if (!respuesta.ok) {
+            alert("Error en la petición");
+            return;
+          }
+          MostrarDatos();
+        } catch (e) {
+          console.log("Error:", e);
+        }
+      };
+
+      miFormulario.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        try {
+          const formData = new FormData(miFormulario);
+          const datos = Object.fromEntries(formData);
+
+          const respuesta = await fetch(
+            "http://localhost:8000/api/user/register",
+            {
+              method: "POST",
+              // headers: { "Content-Type": "application/json" }, // <-- ¡Descomenta o agrega esto!
+              body: JSON.stringify(datos),
+            },
+          );
+
+          if (!respuesta.ok) {
+            alert("Error en la petición");
+            return;
+          }
+          miFormulario.reset();
+          MostrarDatos();
+        } catch (e) {
+          console.log("Error:", e);
+        }
+      });
+
+      const MostrarByID = async (e) => {
+        try {
+          const id = IdInput.value;
+
+          // alert("dad");
+          //  console.log(IdInput.value);
+          // console.log(id);
+          // id = (int) id;
+          if (id === "") {
+            console.log(id);
+            MostrarDatos();
+            return;
+          }
+
+          const respuesta = await fetch(`http://localhost:8000/api/user/${id}`);
+
+          if (!respuesta.ok) {
+            alert(`No se ha encontrado ningun usuario con id ${id}`);
+            MostrarDatos();
+            return;
+          }
+
+          const data = await respuesta.json();
+          console.log(data);
+
+          var innerHtml = `<thead class= "table-dark border">
+                            <tr>
+                                <th scope="col">Id</th>
+                                <th scope="col">Usuario</th>
+                                <th scope="col">Contraseña</th>
+                                <th scope="col">Correo</th>
+                                <th scope="col">Fecha</th>
+                                <th scope="col">Eliminar</th>
+                                <th scope="col">Actualizar</th>
+                            </tr>
+                         </thead>
+                         <tbody class="table-group-divider">`;
+
+          innerHtml += `
+                        <tr>
+                            <th scope="row" data-id = "${data.id}">${data.id}</th>
+                            <td>${data.nombre}</td>
+                            <td>${data.contrasena}</td>
+                            <td>${data.correo}</td>
+                            <td>${data.fecha}</td>
+                            <td><button
+                                onclick="EliminarDatos(this)"
+                                class="btn btn-danger"
+                                type="submit"
+                                >
+                                     Eliminar
+                            </button>
+                                  <td><button
+                                onclick="ActualizarModal(this)"
+                                class="btn btn-primary"
+                                data-toggle="modal"
+                                data-target="#modalActualizar""
+                                type="submit"
+                                >
+                                     Actualizar
+                            </button>
+                            </td>
+                        </tr>
+
+                         `;
+
+          innerHtml += ` </tbody>
+                     </table>`;
+
+          miTabla.replaceChildren();
+          miTabla.insertAdjacentHTML("beforeend", innerHtml);
+        } catch (error) {
+          console.log(error);
+        }
+      };
+    </script>
+  </body>
+</html>
